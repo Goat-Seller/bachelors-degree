@@ -1,6 +1,5 @@
 import dearpygui.dearpygui as dpg
-from gui import image_manager
-from gui import layout_manager
+from gui import image_manager, layout_manager, app_controller
 
 VIEWPORT_WIDTH = 1200
 VIEWPORT_HEIGHT = 800
@@ -27,6 +26,7 @@ with dpg.window(tag="Main Window"):
             with dpg.child_window(tag="TopRight"):
                 dpg.add_text("Current Transformation Process", color=(150, 255, 255))
                 dpg.add_separator()
+                dpg.add_button(label="Start Image Processing", callback=app_controller.start_processing_callback)
 
         # --- BOTTOM ROW ---
         with dpg.table_row():
@@ -37,7 +37,7 @@ with dpg.window(tag="Main Window"):
             with dpg.child_window(tag="BottomRight"):
                 dpg.add_text("Full G-code Output", color=(255, 150, 255))
                 dpg.add_separator()
-                dpg.add_input_text(
+                dpg.add_input_text( 
                     multiline=True, 
                     default_value="G90 ; Absolute positioning\nG21 ; Set units to millimeters\nG00 X0 Y0 ; Move to origin\n...", 
                     width=-1, 
@@ -46,7 +46,6 @@ with dpg.window(tag="Main Window"):
 
 # --- INITIALIZATION ---
 dpg.create_viewport(title='CNC Image to G-Code Generator', width=VIEWPORT_WIDTH, height=VIEWPORT_HEIGHT)
-
 dpg.set_viewport_resize_callback(layout_manager.resize_handler)
 
 dpg.setup_dearpygui()
@@ -56,6 +55,6 @@ dpg.set_primary_window("Main Window", True)
 layout_manager.resize_handler(None, None, None)
 
 while dpg.is_dearpygui_running():
-    # Check frame_queue here with get_nowait() and call dpg.set_value(...)
-    dpg.render_dearpygui_frame()
+    app_controller.app_start()
+
 dpg.destroy_context()

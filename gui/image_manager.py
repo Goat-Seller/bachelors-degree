@@ -1,5 +1,6 @@
 import dearpygui.dearpygui as dpg
 from image_processing import pipeline
+from image_processing import utility
 
 # Wewnętrzny słownik przechowujący stan załadowanego obrazu
 _image_state = {
@@ -17,7 +18,7 @@ def _on_image_selected(sender, app_data, user_data):
     file_path = app_data['file_path_name']
 
     image_data = dpg.load_image(file_path)
-    cv_image = pipeline.load_cv(file_path)
+    cv_image = utility.load_cv(file_path)
     if image_data is None:
         print(f"BŁĄD: Nie udało się wczytać pliku {file_path}")
         return
@@ -48,6 +49,10 @@ def _on_image_selected(sender, app_data, user_data):
     # Dodajemy obraz do głównego interfejsu (tag TopLeft musi istnieć w main.py)
     dpg.add_image(texture_id, parent="TopLeft", tag="OriginalImage", user_data=(width, height))
     
+    # Create RGBA float32 buffer
+    initial_blank_buffer = utility.create_image_buffer(width,height)
+    setup_transformed_texture(width, height, initial_blank_buffer)
+    
     # Wywołujemy resize_handler, który został przekazany przez user_data podczas inicjalizacji
     if user_data:
         user_data(None, None, None)
@@ -70,7 +75,7 @@ def setup_image_system(resize_callback):
         dpg.add_file_extension("Image files (*.png *.jpg *.jpeg){.png,.jpg,.jpeg}", color=(255, 255, 255, 255))
         dpg.add_file_extension(".*", color=(255, 255, 255, 255))
 
-def setup_tranformed_texture(width, height, initial_data):
+def setup_transformed_texture(width, height, initial_data):
     """
     Tworzy teksturę dynamiczną w rejestrze oraz widżet obrazu w oknie TopRight.
     """

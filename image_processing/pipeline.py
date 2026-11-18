@@ -1,5 +1,6 @@
 import cv2 as cv
 import numpy as np
+from image_processing import utility
 
 def grayscale(image):
     return cv.cvtColor(image, cv.COLOR_BGR2GRAY) 
@@ -14,20 +15,11 @@ def otsu_threshold(image):
 def canny(image):
     return cv.Canny(image, 100, 200)
 
-def image_to_dpg(image):
-    return cv.cvtColor(image, cv.COLOR_GRAY2RGBA)
-    
-def normalization(image):
-    return image.astype(np.float32) / 255.0
-
-def format_to_dpg(image):
-    image = image_to_dpg(image)
-    image = normalization(image)
-    height, width, _ = image.shape
-    return width, height, image.ravel()
-
-def load_cv(path):
-    return cv.imdecode(np.fromfile(path, dtype=np.uint8), cv.IMREAD_COLOR) # format wczytywania uwzględniajaca polskie znaki w scieżce
+def sobel(image):
+    sobel_x = cv.Sobel(image, cv.CV_64F, 1, 0, ksize=3)
+    sobel_y = cv.Sobel(image, cv.CV_64F, 0, 1, ksize=3)
+    gradient_magnitude = np.sqrt(sobel_x**2 + sobel_y**2)
+    return cv.convertScaleAbs(gradient_magnitude)
 
 def process_image_pipeline(image):
 
@@ -44,10 +36,10 @@ def process_image_pipeline(image):
     edges = canny(blurred)
 
     # 4. Konwersja z powrotem do formatu RGBA wymaganego przez dpg
-    edges_rgba = image_to_dpg(edges)
+    edges_rgba = utility.image_to_dpg(edges)
 
     # 5. Normalizacja wartości do zakresu [0.0, 1.0] i zmiana typu na float32
-    normalized_data = normalization(edges_rgba)
+    normalized_data = utility.normalization(edges_rgba)
     height, width, _ = normalized_data.shape
     
     # Zwracamy wymiary oraz spłaszczoną tablicę 1D
