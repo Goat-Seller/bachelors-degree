@@ -1,9 +1,11 @@
 import dearpygui.dearpygui as dpg
+from image_processing import pipeline
 
 # Wewnętrzny słownik przechowujący stan załadowanego obrazu
 _image_state = {
     "width": 0,
-    "height": 0
+    "height": 0,
+    "cv_image": None  
 }
 
 def get_image_size():
@@ -15,13 +17,16 @@ def _on_image_selected(sender, app_data, user_data):
     file_path = app_data['file_path_name']
 
     image_data = dpg.load_image(file_path)
+    cv_image = pipeline.load_cv(file_path)
     if image_data is None:
         print(f"BŁĄD: Nie udało się wczytać pliku {file_path}")
         return
 
+
     width, height, channels, data = image_data
     
-    # Zapisujemy wymiary do stanu
+    # Zapisujemy obraz i wymiary do stanu
+    _image_state["cv_image"] = cv_image
     _image_state["width"] = width
     _image_state["height"] = height
 
@@ -64,3 +69,38 @@ def setup_image_system(resize_callback):
         height=450):
         dpg.add_file_extension("Image files (*.png *.jpg *.jpeg){.png,.jpg,.jpeg}", color=(255, 255, 255, 255))
         dpg.add_file_extension(".*", color=(255, 255, 255, 255))
+
+def setup_tranformed_texture(width, height, initial_data):
+    """
+    Tworzy teksturę dynamiczną w rejestrze oraz widżet obrazu w oknie TopRight.
+    """
+    # Sprawdzamy czy rejestr tekstur dynamicznych istnieje, jeśli nie - tworzymy go
+    if not dpg.does_item_exist("Dynamic_Texture_Registry"):
+        with dpg.texture_registry(tag="Dynamic_Texture_Registry", show=False):
+            pass
+    if dpg.does_item_exist("TransformedImage"):
+        dpg.delete_item("TransformedImage")
+    if dpg.does_item_exist("Transformed_Image_Texture"):
+        dpg.delete_item("Transformed_Image_Texture")
+
+    dpg.add_raw_texture(
+        width=width,
+        height=height,
+        default_value=initial_data,
+        format=dpg.mvFormat_Float_rgba,
+        parent="Dynamic_Texture_Registry",
+        tag="Transformed_Image_Texture"
+    )
+
+    # Dodajemy widżet wyświetlający teksturę w kontenerze TopRight
+    dpg.add_image(
+        "Transformed_Image_Texture", 
+        parent="TopRight", 
+        tag="TransformedImage", 
+        user_data=(width, height)
+    )
+
+def get_cv_image():
+    return _image_state["cv_image"]
+
+

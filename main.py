@@ -20,22 +20,22 @@ with dpg.window(tag="Main Window"):
         # --- TOP ROW ---
         with dpg.table_row():
             with dpg.child_window(tag="TopLeft"):
-                dpg.add_text("1. Original Image to Draw", color=(150, 255, 150))
+                dpg.add_text("Original Image to Draw", color=(150, 255, 150))
                 dpg.add_separator()
                 dpg.add_button(label="Load Image", callback=lambda: dpg.show_item("FileDialog"))
                 
             with dpg.child_window(tag="TopRight"):
-                dpg.add_text("2. Current Transformation Process", color=(150, 255, 255))
+                dpg.add_text("Current Transformation Process", color=(150, 255, 255))
                 dpg.add_separator()
 
         # --- BOTTOM ROW ---
         with dpg.table_row():
             with dpg.child_window(tag="BottomLeft"):
-                dpg.add_text("3. Current Drawing Process", color=(255, 200, 150))
+                dpg.add_text("Current Drawing Process", color=(255, 200, 150))
                 dpg.add_separator()
                 
             with dpg.child_window(tag="BottomRight"):
-                dpg.add_text("4. Full G-code Output", color=(255, 150, 255))
+                dpg.add_text("Full G-code Output", color=(255, 150, 255))
                 dpg.add_separator()
                 dpg.add_input_text(
                     multiline=True, 
@@ -55,5 +55,7 @@ dpg.set_primary_window("Main Window", True)
 
 layout_manager.resize_handler(None, None, None)
 
-dpg.start_dearpygui()
+while dpg.is_dearpygui_running():
+    # Check frame_queue here with get_nowait() and call dpg.set_value(...)
+    dpg.render_dearpygui_frame()
 dpg.destroy_context()
